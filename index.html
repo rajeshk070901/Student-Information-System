@@ -1,0 +1,669 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Student Information System | Single File</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    :root{
+      --bg:#f4f7fb;--panel:#ffffff;--panel-2:#f8faff;--text:#172033;--muted:#6d7890;--border:#e5eaf3;
+      --primary:#4f46e5;--primary-2:#7c3aed;--success:#16a34a;--danger:#dc2626;--warning:#d97706;
+      --shadow:0 18px 50px rgba(20,34,66,.08);--radius:22px;
+    }
+    body.dark-mode{
+      --bg:#0f172a;--panel:#111827;--panel-2:#1a2336;--text:#e5ecff;--muted:#98a4c0;--border:#27324a;
+      --shadow:0 18px 50px rgba(0,0,0,.35);
+    }
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{font-family:'Inter',sans-serif;background:linear-gradient(135deg,var(--bg),#dde7fb 180%);color:var(--text);min-height:100vh;transition:.25s}
+    body.dark-mode{background:linear-gradient(135deg,#0b1220,#18243d 180%)}
+    a{text-decoration:none;color:inherit}
+    button,input,select,textarea{font:inherit}
+    .hidden{display:none !important}
+    .app.hidden,.login-screen.hidden{display:none !important}
+    .btn{border:none;border-radius:14px;padding:12px 16px;font-weight:700;cursor:pointer;transition:.2s;display:inline-flex;align-items:center;justify-content:center;gap:8px}
+    .btn:hover{transform:translateY(-1px)}
+    .btn-primary{background:linear-gradient(135deg,var(--primary),var(--primary-2));color:#fff}
+    .btn-secondary{background:var(--panel-2);color:var(--text);border:1px solid var(--border)}
+    .btn-danger{background:var(--danger);color:#fff}
+    .btn-block{width:100%}
+    .alert{padding:12px 14px;border-radius:14px;margin-bottom:16px;font-weight:600}
+    .alert.success{background:rgba(22,163,74,.12);color:#15803d}.alert.error{background:rgba(220,38,38,.12);color:#b91c1c}
+    .section-label,.eyebrow{color:var(--primary);font-weight:700;font-size:.82rem;text-transform:uppercase;letter-spacing:.08em}
+    .muted{color:var(--muted)}
+    .login-screen{min-height:100vh;padding:24px;display:grid;place-items:center}
+    .login-shell{width:min(1180px,100%);display:grid;grid-template-columns:1.1fr .9fr;gap:24px}
+    .card{background:var(--panel);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow)}
+    .glass{backdrop-filter:blur(16px);background:color-mix(in srgb,var(--panel) 92%, transparent)}
+    .login-brand,.login-box{padding:34px}
+    .login-brand{display:flex;flex-direction:column;justify-content:space-between;min-height:620px;background:linear-gradient(135deg,rgba(79,70,229,.12),rgba(124,58,237,.08)),var(--panel)}
+    .login-brand h1{font-size:clamp(2rem,4vw,3.5rem);margin:10px 0 14px;line-height:1.05}
+    .feature-list{display:grid;gap:16px;margin-top:28px}
+    .feature-item{display:flex;gap:14px;padding:16px;border:1px solid var(--border);border-radius:18px;background:var(--panel-2)}
+    .feature-item span{height:42px;width:42px;border-radius:12px;display:grid;place-items:center;font-weight:800;background:linear-gradient(135deg,var(--primary),var(--primary-2));color:#fff;flex:0 0 auto}
+    .login-box{display:flex;flex-direction:column;justify-content:center}
+    .login-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:18px}
+    .theme-toggle{height:42px;width:42px;border-radius:12px;border:1px solid var(--border);background:var(--panel-2);cursor:pointer}
+    .styled-form{margin-top:10px}
+    .form-grid{display:grid;gap:16px}
+    .form-group{display:grid;gap:8px}
+    .form-group label{font-weight:700}
+    .form-group input,.form-group select,.form-group textarea{width:100%;padding:13px 14px;border:1px solid var(--border);border-radius:14px;background:var(--panel-2);color:var(--text);outline:none}
+    .form-group textarea{min-height:110px;resize:vertical}
+    .error-text{font-size:.85rem;color:var(--danger);min-height:18px}
+    .demo-credentials{display:grid;gap:12px;margin-top:22px}
+    .credential-card{padding:14px;border-radius:16px;background:var(--panel-2);border:1px solid var(--border)}
+    .app{display:grid;grid-template-columns:280px 1fr;min-height:100vh}
+    .sidebar{padding:24px;border-right:1px solid var(--border);background:var(--panel);position:sticky;top:0;height:100vh}
+    .sidebar-brand h2{margin-top:8px;font-size:1.45rem}
+    .sidebar-nav{display:grid;gap:10px;margin:28px 0}
+    .nav-link{padding:14px 16px;border-radius:16px;display:flex;align-items:center;gap:12px;color:var(--muted);font-weight:600;transition:.2s}
+    .nav-link:hover,.nav-link.active{background:linear-gradient(135deg,rgba(79,70,229,.14),rgba(124,58,237,.10));color:var(--text);transform:translateX(3px)}
+    .nav-icon{font-size:1.15rem}
+    .sidebar-footer{margin-top:auto;padding-top:16px;color:var(--muted);font-size:.9rem}
+    .main{display:flex;flex-direction:column;min-width:0}
+    .topbar{padding:18px 24px;border-bottom:1px solid var(--border);background:color-mix(in srgb,var(--panel) 92%, transparent);backdrop-filter:blur(10px);position:sticky;top:0;z-index:20}
+    .topbar-inner{display:flex;justify-content:space-between;gap:16px;align-items:center}
+    .search-shell input{width:min(420px,100%);padding:12px 16px;border:1px solid var(--border);border-radius:14px;background:var(--panel-2);color:var(--text)}
+    .profile-row{display:flex;align-items:center;gap:12px;position:relative}
+    .profile-chip{height:44px;width:44px;border-radius:14px;border:1px solid var(--border);background:var(--panel-2);cursor:pointer}
+    .profile-dropdown{position:absolute;right:0;top:58px;width:230px;padding:10px;background:var(--panel);border:1px solid var(--border);border-radius:18px;box-shadow:var(--shadow)}
+    .profile-dropdown .head{padding:10px 12px 12px;border-bottom:1px solid var(--border);margin-bottom:8px}
+    .profile-dropdown button{width:100%;padding:12px;border:none;background:var(--panel-2);border-radius:12px;cursor:pointer;font-weight:700;color:var(--text)}
+    .content{padding:24px;display:grid;gap:24px}
+    .page-header{display:flex;justify-content:space-between;gap:20px;align-items:flex-start}
+    .page-header h1{font-size:clamp(1.8rem,3vw,2.4rem);margin:6px 0}
+    .stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:18px}
+    .stat-card{padding:22px;border-radius:22px;border:1px solid var(--border);background:var(--panel);box-shadow:var(--shadow)}
+    .stat-card .value{font-size:2rem;font-weight:800;margin:10px 0 4px}
+    .content-grid{display:grid;gap:20px}
+    .two-columns{grid-template-columns:1.15fr .85fr}
+    .panel-card{padding:22px;border-radius:22px;border:1px solid var(--border);background:var(--panel);box-shadow:var(--shadow)}
+    .panel-header{display:flex;justify-content:space-between;align-items:center;gap:14px;margin-bottom:18px}
+    .panel-header h3{margin-top:4px}
+    .table-wrapper{overflow:auto}
+    table{width:100%;border-collapse:collapse}
+    th,td{padding:14px 12px;text-align:left;border-bottom:1px solid var(--border);vertical-align:top}
+    th{font-size:.9rem;color:var(--muted);font-weight:700;background:var(--panel-2)}
+    td .actions{display:flex;flex-wrap:wrap;gap:8px}
+    .badge{display:inline-flex;padding:7px 10px;border-radius:999px;font-weight:700;font-size:.8rem;background:var(--panel-2);border:1px solid var(--border)}
+    .badge.good{background:rgba(22,163,74,.12);color:#15803d}.badge.warn{background:rgba(217,119,6,.12);color:#b45309}.badge.danger{background:rgba(220,38,38,.12);color:#b91c1c}
+    .toolbar{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:18px}
+    .toolbar input,.toolbar select{padding:12px 14px;border:1px solid var(--border);border-radius:14px;background:var(--panel-2);color:var(--text)}
+    .list-stack{display:grid;gap:12px}.list-item{padding:14px;border-radius:16px;background:var(--panel-2);border:1px solid var(--border)}
+    .course-grid,.subject-list,.profile-grid{display:grid;gap:16px}
+    .course-grid{grid-template-columns:repeat(auto-fit,minmax(220px,1fr))}
+    .course-card{padding:18px;border-radius:18px;border:1px solid var(--border);background:var(--panel-2)}
+    .profile-grid{grid-template-columns:repeat(auto-fit,minmax(160px,1fr))}
+    .profile-card{padding:16px;border-radius:18px;background:var(--panel-2);border:1px solid var(--border)}
+    .empty-state{padding:24px;text-align:center;color:var(--muted);border:1px dashed var(--border);border-radius:16px;background:var(--panel-2)}
+    .modal{position:fixed;inset:0;background:rgba(8,15,30,.45);display:grid;place-items:center;padding:18px;z-index:50}
+    .modal-card{width:min(760px,100%);padding:24px;border-radius:24px;background:var(--panel);border:1px solid var(--border);box-shadow:var(--shadow)}
+    .modal-actions{display:flex;justify-content:flex-end;gap:10px;margin-top:16px}
+    .notification{padding:14px;border-radius:16px;background:var(--panel-2);border:1px solid var(--border)}
+    .mobile-menu{display:none}
+    @media (max-width:1100px){.stats-grid{grid-template-columns:repeat(2,1fr)}.two-columns,.login-shell,.app{grid-template-columns:1fr}.sidebar{position:fixed;left:-100%;width:280px;z-index:40;transition:.25s}.sidebar.open{left:0}.mobile-menu{display:inline-flex}.app{display:block}.main{margin-left:0}}
+    @media (max-width:700px){.stats-grid{grid-template-columns:1fr}.content,.topbar,.sidebar{padding:16px}.login-brand,.login-box,.panel-card,.stat-card{padding:18px}.search-shell{display:none}.page-header{flex-direction:column}.toolbar>*{width:100%}}
+  </style>
+</head>
+<body class="light-mode">
+  <section id="loginScreen" class="login-screen">
+    <div class="login-shell">
+      <section class="card glass login-brand">
+        <div>
+          <span class="eyebrow">University Management Information System</span>
+          <h1>Student Information System</h1>
+          <p class="muted">A professional single-file SIS demo built only with HTML, CSS, and JavaScript using LocalStorage and SessionStorage.</p>
+          <div class="feature-list">
+            <div class="feature-item"><span>01</span><div><h3>Admin Portal</h3><p class="muted">Manage students, courses, attendance, marks, and reports.</p></div></div>
+            <div class="feature-item"><span>02</span><div><h3>Student Portal</h3><p class="muted">View profile, enrolled courses, attendance, marks, and notices.</p></div></div>
+            <div class="feature-item"><span>03</span><div><h3>Frontend Only</h3><p class="muted">No backend, no SQL, with browser-based storage persistence.</p></div></div>
+          </div>
+        </div>
+      </section>
+      <section class="card glass login-box">
+        <div class="login-top">
+          <div>
+            <p class="section-label">Welcome Back</p>
+            <h2 style="margin-top:6px">Login to SIS</h2>
+          </div>
+          <button id="themeToggleLogin" class="theme-toggle" type="button">☀️</button>
+        </div>
+        <form id="loginForm" class="styled-form" novalidate>
+          <div id="loginAlert" class="alert error hidden"></div>
+          <div class="form-grid">
+            <div class="form-group">
+              <label for="role">Role</label>
+              <select id="role" required>
+                <option value="">Select role</option>
+                <option value="admin">Admin</option>
+                <option value="student">Student</option>
+              </select>
+              <small class="error-text" id="roleError"></small>
+            </div>
+            <div class="form-group">
+              <label for="username">Username</label>
+              <input id="username" type="text" placeholder="Enter username" required>
+              <small class="error-text" id="usernameError"></small>
+            </div>
+            <div class="form-group">
+              <label for="password">Password</label>
+              <input id="password" type="password" placeholder="Enter password" required>
+              <small class="error-text" id="passwordError"></small>
+            </div>
+            <button class="btn btn-primary btn-block" type="submit">Login</button>
+          </div>
+        </form>
+        <div class="demo-credentials">
+          <!--
+          <div class="credential-card"><strong>Admin</strong><p>Username: <code>admin</code></p><p>Password: <code>admin123</code></p></div>
+          <div class="credential-card"><strong>Student</strong><p>Username: <code>st101</code></p><p>Password: <code>student123</code></p></div>
+          -->
+        </div>
+      </section>
+    </div>
+  </section>
+
+  <section id="app" class="app hidden">
+    <aside class="sidebar" id="sidebar"></aside>
+    <div class="main">
+      <header class="topbar" id="topbar"></header>
+      <main class="content" id="content"></main>
+    </div>
+  </section>
+
+  <div id="modalRoot"></div>
+
+  <script>
+    const STORAGE_KEYS = {
+      users: 'sis_users',
+      students: 'sis_students',
+      courses: 'sis_courses',
+      marks: 'sis_marks',
+      attendance: 'sis_attendance',
+      notifications: 'sis_notifications',
+      theme: 'sis_theme',
+      session: 'sis_session'
+    };
+
+    const state = { page: 'dashboard', chart: null, user: null };
+
+    const seed = {
+      users: [
+        { id: 'u1', username: 'admin', password: 'admin123', role: 'admin', name: 'System Admin' },
+        { id: 'u2', username: 'st101', password: 'student123', role: 'student', name: 'Aisha Rahman', studentId: 's101' },
+        { id: 'u3', username: 'st102', password: 'student123', role: 'student', name: 'Rohan Kumar', studentId: 's102' },
+        { id: 'u4', username: 'st103', password: 'student123', role: 'student', name: 'Meera Nair', studentId: 's103' }
+      ],
+      courses: [
+        { id: 'c1', name: 'B.Sc Computer Science', code: 'BCS', subjects: ['Programming in C', 'Data Structures', 'Database Systems', 'Web Technology'] },
+        { id: 'c2', name: 'BCA', code: 'BCA', subjects: ['Java Programming', 'Computer Networks', 'Operating Systems', 'Software Engineering'] },
+        { id: 'c3', name: 'B.Com Information Systems', code: 'BIS', subjects: ['Business Statistics', 'E-Commerce', 'Accounting Systems', 'Management Information Systems'] }
+      ],
+      students: [
+        { id: 's101', regNo: '2024CS101', fullName: 'Aisha Rahman', email: 'aisha@example.com', department: 'Computer Science', year: 'II Year', courseId: 'c1' },
+        { id: 's102', regNo: '2024CA102', fullName: 'Rohan Kumar', email: 'rohan@example.com', department: 'Computer Applications', year: 'I Year', courseId: 'c2' },
+        { id: 's103', regNo: '2024IS103', fullName: 'Meera Nair', email: 'meera@example.com', department: 'Information Systems', year: 'III Year', courseId: 'c3' }
+      ],
+      marks: [
+        { id: 'm1', studentId: 's101', subject: 'Programming in C', marks: 88 },
+        { id: 'm2', studentId: 's101', subject: 'Data Structures', marks: 91 },
+        { id: 'm3', studentId: 's101', subject: 'Database Systems', marks: 84 },
+        { id: 'm4', studentId: 's102', subject: 'Java Programming', marks: 76 },
+        { id: 'm5', studentId: 's102', subject: 'Computer Networks', marks: 81 },
+        { id: 'm6', studentId: 's103', subject: 'E-Commerce', marks: 89 },
+        { id: 'm7', studentId: 's103', subject: 'Accounting Systems', marks: 86 }
+      ],
+      attendance: [
+        { id: 'a1', studentId: 's101', subject: 'Programming in C', percentage: 94 },
+        { id: 'a2', studentId: 's101', subject: 'Data Structures', percentage: 90 },
+        { id: 'a3', studentId: 's102', subject: 'Java Programming', percentage: 87 },
+        { id: 'a4', studentId: 's102', subject: 'Computer Networks', percentage: 82 },
+        { id: 'a5', studentId: 's103', subject: 'E-Commerce', percentage: 96 },
+        { id: 'a6', studentId: 's103', subject: 'Accounting Systems', percentage: 91 }
+      ],
+      notifications: [
+        { id: 'n1', title: 'Mid-semester marks published', message: 'Students can now review their internal assessment marks.' },
+        { id: 'n2', title: 'Attendance review week', message: 'Department coordinators should verify attendance records before Friday.' },
+        { id: 'n3', title: 'Course registration update', message: 'Course mapping has been refreshed for the upcoming semester.' }
+      ]
+    };
+
+    const $ = s => document.querySelector(s);
+    const uid = p => p + Math.random().toString(36).slice(2, 8);
+    const get = key => JSON.parse(localStorage.getItem(key) || 'null');
+    const set = (key, val) => localStorage.setItem(key, JSON.stringify(val));
+    const average = arr => arr.length ? Math.round(arr.reduce((a, b) => a + Number(b || 0), 0) / arr.length) : 0;
+    const gradeFromMarks = m => m >= 90 ? 'A+' : m >= 80 ? 'A' : m >= 70 ? 'B' : m >= 60 ? 'C' : m >= 50 ? 'D' : 'RA';
+    const courseById = id => get(STORAGE_KEYS.courses).find(c => c.id === id);
+    const marksOf = studentId => get(STORAGE_KEYS.marks).filter(m => m.studentId === studentId);
+    const attendanceOf = studentId => get(STORAGE_KEYS.attendance).filter(a => a.studentId === studentId);
+    const avgMarksOf = studentId => average(marksOf(studentId).map(x => x.marks));
+    const avgAttendanceOf = studentId => average(attendanceOf(studentId).map(x => x.percentage));
+    const badgeClassAttendance = p => p >= 90 ? 'good' : p >= 75 ? 'warn' : 'danger';
+
+    function initStorage() {
+      Object.entries(seed).forEach(([k, v]) => { if (!get(STORAGE_KEYS[k])) set(STORAGE_KEYS[k], v); });
+      if (!localStorage.getItem(STORAGE_KEYS.theme)) localStorage.setItem(STORAGE_KEYS.theme, 'light-mode');
+    }
+
+    function applyTheme() {
+      const theme = localStorage.getItem(STORAGE_KEYS.theme) || 'light-mode';
+      document.body.classList.remove('light-mode', 'dark-mode');
+      document.body.classList.add(theme);
+      [$('#themeToggleLogin'), $('#themeToggleApp')].forEach(btn => { if (btn) btn.textContent = theme === 'dark-mode' ? '🌙' : '☀️'; });
+    }
+
+    function toggleTheme() {
+      const next = document.body.classList.contains('dark-mode') ? 'light-mode' : 'dark-mode';
+      localStorage.setItem(STORAGE_KEYS.theme, next);
+      applyTheme();
+    }
+
+    function showAlert(el, msg, type='success') {
+      el.textContent = msg; el.className = 'alert ' + type; el.classList.remove('hidden');
+      setTimeout(() => el.classList.add('hidden'), 2200);
+    }
+
+    function syncStudentUsers() {
+      const users = get(STORAGE_KEYS.users);
+      const students = get(STORAGE_KEYS.students);
+      const admins = users.filter(u => u.role === 'admin');
+      const studentUsers = students.map(s => ({
+        id: 'u_' + s.id,
+        username: 'st' + s.id.replace(/\D/g, ''),
+        password: 'student123',
+        role: 'student',
+        name: s.fullName,
+        studentId: s.id
+      }));
+      set(STORAGE_KEYS.users, [...admins, ...studentUsers]);
+    }
+
+    function validateLogin() {
+      let ok = true;
+      [['role','roleError'],['username','usernameError'],['password','passwordError']].forEach(([id, err]) => {
+        const val = $('#' + id).value.trim();
+        $('#' + err).textContent = val ? '' : 'This field is required';
+        if (!val) ok = false;
+      });
+      return ok;
+    }
+
+    function login(e) {
+      e.preventDefault();
+      if (!validateLogin()) return;
+      const role = $('#role').value;
+      const username = $('#username').value.trim();
+      const password = $('#password').value.trim();
+      const user = get(STORAGE_KEYS.users).find(u => u.username === username && u.password === password && u.role === role);
+      if (!user) return showAlert($('#loginAlert'), 'Invalid role, username, or password.', 'error');
+      sessionStorage.setItem(STORAGE_KEYS.session, JSON.stringify(user));
+      state.user = user;
+      state.page = role === 'admin' ? 'dashboard' : 'student-dashboard';
+      renderApp();
+    }
+
+    function logout() { sessionStorage.removeItem(STORAGE_KEYS.session); state.user = null; $('#app').classList.add('hidden'); $('#loginScreen').classList.remove('hidden'); }
+    function restoreSession() { const raw = sessionStorage.getItem(STORAGE_KEYS.session); state.user = raw ? JSON.parse(raw) : null; }
+
+    function navItems() {
+      return state.user.role === 'admin'
+        ? [
+            ['dashboard','🏠','Dashboard'],['students','🎓','Students'],['courses','📚','Courses'],
+            ['attendance','🗓️','Attendance'],['marks','📝','Marks'],['reports','📈','Reports']
+          ]
+        : [['student-dashboard','🏠','Dashboard']];
+    }
+
+    function renderSidebar() {
+      $('#sidebar').innerHTML = `
+        <div class="sidebar-brand">
+          <p class="eyebrow">SIS Portal</p>
+          <h2>${state.user.role === 'admin' ? 'Admin Workspace' : 'Student Workspace'}</h2>
+        </div>
+        <nav class="sidebar-nav">
+          ${navItems().map(([key, icon, label]) => `<a href="#" class="nav-link ${state.page === key ? 'active' : ''}" data-page="${key}"><span class="nav-icon">${icon}</span><span>${label}</span></a>`).join('')}
+        </nav>
+        <div class="sidebar-footer">Single-file professional demo using browser storage only.</div>
+      `;
+      $('#sidebar').querySelectorAll('.nav-link').forEach(a => a.addEventListener('click', e => { e.preventDefault(); state.page = a.dataset.page; renderAppPage(); }));
+    }
+
+    function renderTopbar() {
+      const student = state.user.role === 'student' ? get(STORAGE_KEYS.students).find(s => s.id === state.user.studentId) : null;
+      $('#topbar').innerHTML = `
+        <div class="topbar-inner">
+          <div style="display:flex;align-items:center;gap:10px;width:100%">
+            <button id="menuBtn" class="btn btn-secondary mobile-menu" type="button">☰</button>
+            <div class="search-shell"><input disabled value="${state.user.role === 'admin' ? 'Admin Portal' : 'Student Portal'}"></div>
+          </div>
+          <div class="profile-row">
+            <button id="themeToggleApp" class="theme-toggle" type="button">☀️</button>
+            <button id="profileTrigger" class="profile-chip" type="button">👤</button>
+            <div id="profileDropdown" class="profile-dropdown hidden">
+              <div class="head"><strong>${state.user.name}</strong><br><span class="muted">${state.user.role === 'admin' ? 'Administrator' : (student?.regNo || 'Student')}</span></div>
+              <button id="logoutBtn" type="button">Logout</button>
+            </div>
+          </div>
+        </div>`;
+      $('#themeToggleApp').addEventListener('click', toggleTheme);
+      $('#profileTrigger').addEventListener('click', () => $('#profileDropdown').classList.toggle('hidden'));
+      $('#logoutBtn').addEventListener('click', logout);
+      $('#menuBtn')?.addEventListener('click',()=>$('#sidebar').classList.toggle('open'));
+      document.addEventListener('click', evt => {
+        const d = $('#profileDropdown'), t = $('#profileTrigger');
+        if (d && t && !d.contains(evt.target) && !t.contains(evt.target)) d.classList.add('hidden');
+      }, { once: true });
+      applyTheme();
+    }
+
+    function statCard(label, value, note) {
+      return `<div class="stat-card"><div class="section-label">${label}</div><div class="value">${value}</div><div class="muted">${note}</div></div>`;
+    }
+
+    function renderAdminDashboard() {
+      const students = get(STORAGE_KEYS.students), courses = get(STORAGE_KEYS.courses), marks = get(STORAGE_KEYS.marks), attendance = get(STORAGE_KEYS.attendance), notifications = get(STORAGE_KEYS.notifications);
+      const topStudents = students.map(s => ({...s, avg: avgMarksOf(s.id), att: avgAttendanceOf(s.id)})).sort((a,b)=>b.avg-a.avg).slice(0,5);
+      $('#content').innerHTML = `
+        <section class="page-header"><div><p class="section-label">Admin Overview</p><h1>Dashboard</h1><p class="muted">Monitor students, courses, attendance, marks, and academic performance.</p></div></section>
+        <section class="stats-grid">
+          ${statCard('Total Students', students.length, 'Active student records in the portal')}
+          ${statCard('Total Courses', courses.length, 'Managed academic programs')}
+          ${statCard('Attendance Avg', average(attendance.map(a=>a.percentage)) + '%', 'Overall attendance percentage')}
+          ${statCard('Marks Avg', average(marks.map(m=>m.marks)) + '%', 'Overall academic performance')}
+        </section>
+        <section class="content-grid two-columns">
+          <div class="panel-card"><div class="panel-header"><div><p class="section-label">Analytics</p><h3>Attendance & Performance</h3></div></div><canvas id="mainChart" height="130"></canvas></div>
+          <div class="panel-card"><div class="panel-header"><div><p class="section-label">Recent Activity</p><h3>Latest Updates</h3></div></div><div class="list-stack">${notifications.map(n=>`<div class="list-item"><strong>${n.title}</strong><p class="muted" style="margin-top:6px">${n.message}</p></div>`).join('')}</div></div>
+        </section>
+        <section class="panel-card">
+          <div class="panel-header"><div><p class="section-label">Student Snapshot</p><h3>Top Student Records</h3></div><button class="btn btn-secondary" data-goto="students">Manage Students</button></div>
+          <div class="table-wrapper"><table><thead><tr><th>ID</th><th>Name</th><th>Department</th><th>Course</th><th>Attendance</th><th>Average</th></tr></thead><tbody>
+            ${topStudents.map(s=>`<tr><td>${s.regNo}</td><td>${s.fullName}</td><td>${s.department}</td><td>${courseById(s.courseId)?.name || '-'}</td><td><span class="badge ${badgeClassAttendance(s.att)}">${s.att || 0}%</span></td><td>${s.avg || 0}%</td></tr>`).join('')}
+          </tbody></table></div>
+        </section>`;
+      $('[data-goto="students"]').onclick = () => { state.page = 'students'; renderAppPage(); };
+      renderChart('mainChart', ['Students','Courses','Attendance Avg','Marks Avg'], [students.length, courses.length, average(attendance.map(a=>a.percentage)), average(marks.map(m=>m.marks))], 'Portal Overview');
+    }
+
+    function renderStudentsPage() {
+      const students = get(STORAGE_KEYS.students), courses = get(STORAGE_KEYS.courses);
+      $('#content').innerHTML = `
+        <section class="page-header"><div><p class="section-label">Student Management</p><h1>Students</h1><p class="muted">Add, edit, delete, search, and filter student records.</p></div><button id="addStudentBtn" class="btn btn-primary">+ Add Student</button></section>
+        <section class="panel-card">
+          <div class="toolbar">
+            <input id="studentSearch" placeholder="Search by name, register no, email, or department">
+            <select id="studentDeptFilter"><option value="">All Departments</option>${[...new Set(students.map(s=>s.department))].map(d=>`<option>${d}</option>`).join('')}</select>
+          </div>
+          <div class="table-wrapper"><table><thead><tr><th>Reg No</th><th>Name</th><th>Email</th><th>Department</th><th>Year</th><th>Course</th><th>Actions</th></tr></thead><tbody id="studentRows"></tbody></table></div>
+        </section>`;
+      const renderRows = () => {
+        const q = $('#studentSearch').value.toLowerCase(); const dept = $('#studentDeptFilter').value;
+        const filtered = get(STORAGE_KEYS.students).filter(s => (!dept || s.department === dept) && [s.regNo,s.fullName,s.email,s.department].join(' ').toLowerCase().includes(q));
+        $('#studentRows').innerHTML = filtered.length ? filtered.map(s => `<tr>
+          <td>${s.regNo}</td><td>${s.fullName}</td><td>${s.email}</td><td>${s.department}</td><td>${s.year}</td><td>${courseById(s.courseId)?.name || '-'}</td>
+          <td><div class="actions"><button class="btn btn-secondary" data-edit="${s.id}">Edit</button><button class="btn btn-danger" data-del="${s.id}">Delete</button></div></td></tr>`).join('')
+          : `<tr><td colspan="7"><div class="empty-state">No student records found.</div></td></tr>`;
+        $('#studentRows').querySelectorAll('[data-edit]').forEach(b => b.onclick = () => openStudentModal(b.dataset.edit));
+        $('#studentRows').querySelectorAll('[data-del]').forEach(b => b.onclick = () => deleteStudent(b.dataset.del));
+      };
+      $('#studentSearch').oninput = renderRows; $('#studentDeptFilter').onchange = renderRows; $('#addStudentBtn').onclick = () => openStudentModal();
+      renderRows();
+    }
+
+    function openStudentModal(id='') {
+      const s = get(STORAGE_KEYS.students).find(x => x.id === id) || { id:'', regNo:'', fullName:'', email:'', department:'', year:'', courseId:'' };
+      $('#modalRoot').innerHTML = `
+        <div class="modal"><div class="modal-card">
+          <div class="panel-header"><div><p class="section-label">Student Form</p><h3>${id ? 'Edit Student' : 'Add Student'}</h3></div><button id="closeModal" class="btn btn-secondary">Close</button></div>
+          <form id="studentForm" class="form-grid">
+            <input type="hidden" id="studentId" value="${s.id}">
+            <div class="form-grid" style="grid-template-columns:repeat(2,1fr);gap:16px">
+              <div class="form-group"><label>Register Number</label><input id="regNo" value="${s.regNo}"></div>
+              <div class="form-group"><label>Full Name</label><input id="fullName" value="${s.fullName}"></div>
+              <div class="form-group"><label>Email</label><input id="email" value="${s.email}"></div>
+              <div class="form-group"><label>Department</label><input id="department" value="${s.department}"></div>
+              <div class="form-group"><label>Year</label><select id="year"><option value="">Select</option>${['I Year','II Year','III Year','IV Year'].map(y=>`<option ${s.year===y?'selected':''}>${y}</option>`).join('')}</select></div>
+              <div class="form-group"><label>Course</label><select id="courseId"><option value="">Select</option>${get(STORAGE_KEYS.courses).map(c=>`<option value="${c.id}" ${s.courseId===c.id?'selected':''}>${c.name}</option>`).join('')}</select></div>
+            </div>
+            <div class="modal-actions"><button type="button" id="cancelModal" class="btn btn-secondary">Cancel</button><button class="btn btn-primary" type="submit">Save Student</button></div>
+          </form>
+        </div></div>`;
+      const close = () => $('#modalRoot').innerHTML='';
+      $('#closeModal').onclick = close; $('#cancelModal').onclick = close;
+      $('#studentForm').onsubmit = e => {
+        e.preventDefault();
+        const data = {
+          id: $('#studentId').value || uid('s'), regNo: $('#regNo').value.trim(), fullName: $('#fullName').value.trim(), email: $('#email').value.trim(),
+          department: $('#department').value.trim(), year: $('#year').value, courseId: $('#courseId').value
+        };
+        if (Object.values(data).some(v => !String(v).trim())) return alert('Please fill all student fields.');
+        let students = get(STORAGE_KEYS.students); const idx = students.findIndex(x => x.id === data.id);
+        if (idx >= 0) students[idx] = data; else students.push(data);
+        set(STORAGE_KEYS.students, students); syncStudentUsers(); close(); renderStudentsPage();
+      };
+    }
+
+    function deleteStudent(id) {
+      if (!confirm('Delete this student record?')) return;
+      set(STORAGE_KEYS.students, get(STORAGE_KEYS.students).filter(s => s.id !== id));
+      set(STORAGE_KEYS.marks, get(STORAGE_KEYS.marks).filter(m => m.studentId !== id));
+      set(STORAGE_KEYS.attendance, get(STORAGE_KEYS.attendance).filter(a => a.studentId !== id));
+      syncStudentUsers(); renderStudentsPage();
+    }
+
+    function renderCoursesPage() {
+      const courses = get(STORAGE_KEYS.courses);
+      $('#content').innerHTML = `
+        <section class="page-header"><div><p class="section-label">Course Management</p><h1>Courses & Subjects</h1><p class="muted">Create courses and maintain subjects for academic mapping.</p></div><button id="addCourseBtn" class="btn btn-primary">+ Add Course</button></section>
+        <section class="course-grid">${courses.map(c => `<div class="course-card"><div class="panel-header"><div><h3>${c.name}</h3><p class="muted">${c.code}</p></div></div><div class="subject-list">${c.subjects.map(s=>`<span class="badge">${s}</span>`).join(' ')}</div><div class="actions" style="margin-top:16px"><button class="btn btn-secondary" data-edit-course="${c.id}">Edit</button><button class="btn btn-danger" data-del-course="${c.id}">Delete</button></div></div>`).join('')}</section>`;
+      $('#addCourseBtn').onclick = () => openCourseModal();
+      $('#content').querySelectorAll('[data-edit-course]').forEach(b => b.onclick = () => openCourseModal(b.dataset.editCourse));
+      $('#content').querySelectorAll('[data-del-course]').forEach(b => b.onclick = () => deleteCourse(b.dataset.delCourse));
+    }
+
+    function openCourseModal(id='') {
+      const c = get(STORAGE_KEYS.courses).find(x => x.id === id) || { id:'', name:'', code:'', subjects:[] };
+      $('#modalRoot').innerHTML = `
+        <div class="modal"><div class="modal-card">
+          <div class="panel-header"><div><p class="section-label">Course Form</p><h3>${id ? 'Edit Course' : 'Add Course'}</h3></div><button id="closeCourseModal" class="btn btn-secondary">Close</button></div>
+          <form id="courseForm" class="form-grid">
+            <input type="hidden" id="courseHiddenId" value="${c.id}">
+            <div class="form-group"><label>Course Name</label><input id="courseName" value="${c.name}"></div>
+            <div class="form-group"><label>Course Code</label><input id="courseCode" value="${c.code}"></div>
+            <div class="form-group"><label>Subjects (comma separated)</label><textarea id="courseSubjects">${c.subjects.join(', ')}</textarea></div>
+            <div class="modal-actions"><button type="button" id="cancelCourseModal" class="btn btn-secondary">Cancel</button><button class="btn btn-primary" type="submit">Save Course</button></div>
+          </form>
+        </div></div>`;
+      const close = () => $('#modalRoot').innerHTML='';
+      $('#closeCourseModal').onclick = close; $('#cancelCourseModal').onclick = close;
+      $('#courseForm').onsubmit = e => {
+        e.preventDefault();
+        const data = { id: $('#courseHiddenId').value || uid('c'), name: $('#courseName').value.trim(), code: $('#courseCode').value.trim(), subjects: $('#courseSubjects').value.split(',').map(s=>s.trim()).filter(Boolean) };
+        if (!data.name || !data.code || !data.subjects.length) return alert('Please enter course details and at least one subject.');
+        let list = get(STORAGE_KEYS.courses); const idx = list.findIndex(x => x.id === data.id); if (idx >= 0) list[idx] = data; else list.push(data); set(STORAGE_KEYS.courses, list); close(); renderCoursesPage();
+      };
+    }
+
+    function deleteCourse(id) {
+      if (!confirm('Delete this course?')) return;
+      set(STORAGE_KEYS.courses, get(STORAGE_KEYS.courses).filter(c => c.id !== id));
+      renderCoursesPage();
+    }
+
+    function renderAttendancePage() {
+      const students = get(STORAGE_KEYS.students), courses = get(STORAGE_KEYS.courses);
+      $('#content').innerHTML = `
+        <section class="page-header"><div><p class="section-label">Attendance Management</p><h1>Attendance</h1><p class="muted">Add attendance by student and subject with instant reports.</p></div><button id="addAttendanceBtn" class="btn btn-primary">+ Add Attendance</button></section>
+        <section class="panel-card"><div class="table-wrapper"><table><thead><tr><th>Student</th><th>Subject</th><th>Percentage</th><th>Status</th><th>Actions</th></tr></thead><tbody id="attendanceRows"></tbody></table></div></section>`;
+      const renderRows = () => {
+        const rows = get(STORAGE_KEYS.attendance);
+        $('#attendanceRows').innerHTML = rows.length ? rows.map(a => {
+          const s = students.find(x=>x.id===a.studentId);
+          return `<tr><td>${s?.fullName || '-'}<br><span class="muted">${s?.regNo || ''}</span></td><td>${a.subject}</td><td>${a.percentage}%</td><td><span class="badge ${badgeClassAttendance(a.percentage)}">${a.percentage >= 75 ? 'Eligible' : 'Low Attendance'}</span></td><td><div class="actions"><button class="btn btn-secondary" data-edit-att="${a.id}">Edit</button><button class="btn btn-danger" data-del-att="${a.id}">Delete</button></div></td></tr>`;
+        }).join('') : `<tr><td colspan="5"><div class="empty-state">No attendance data found.</div></td></tr>`;
+        $('#attendanceRows').querySelectorAll('[data-edit-att]').forEach(b => b.onclick = () => openAttendanceModal(b.dataset.editAtt));
+        $('#attendanceRows').querySelectorAll('[data-del-att]').forEach(b => b.onclick = () => deleteAttendance(b.dataset.delAtt));
+      };
+      $('#addAttendanceBtn').onclick = () => openAttendanceModal(); renderRows();
+    }
+
+    function openAttendanceModal(id='') {
+      const a = get(STORAGE_KEYS.attendance).find(x=>x.id===id) || { id:'', studentId:'', subject:'', percentage:'' };
+      $('#modalRoot').innerHTML = `
+        <div class="modal"><div class="modal-card">
+          <div class="panel-header"><div><p class="section-label">Attendance Form</p><h3>${id ? 'Edit Attendance' : 'Add Attendance'}</h3></div><button id="closeAttendanceModal" class="btn btn-secondary">Close</button></div>
+          <form id="attendanceForm" class="form-grid">
+            <input type="hidden" id="attendanceId" value="${a.id}">
+            <div class="form-group"><label>Student</label><select id="attendanceStudent"><option value="">Select</option>${get(STORAGE_KEYS.students).map(s=>`<option value="${s.id}" ${a.studentId===s.id?'selected':''}>${s.fullName} (${s.regNo})</option>`).join('')}</select></div>
+            <div class="form-group"><label>Subject</label><input id="attendanceSubject" value="${a.subject}"></div>
+            <div class="form-group"><label>Percentage</label><input id="attendancePercentage" type="number" min="0" max="100" value="${a.percentage}"></div>
+            <div class="modal-actions"><button type="button" id="cancelAttendanceModal" class="btn btn-secondary">Cancel</button><button class="btn btn-primary" type="submit">Save Attendance</button></div>
+          </form>
+        </div></div>`;
+      const close = () => $('#modalRoot').innerHTML='';
+      $('#closeAttendanceModal').onclick = close; $('#cancelAttendanceModal').onclick = close;
+      $('#attendanceForm').onsubmit = e => {
+        e.preventDefault();
+        const data = { id: $('#attendanceId').value || uid('a'), studentId: $('#attendanceStudent').value, subject: $('#attendanceSubject').value.trim(), percentage: Number($('#attendancePercentage').value) };
+        if (!data.studentId || !data.subject || Number.isNaN(data.percentage) || data.percentage < 0 || data.percentage > 100) return alert('Enter valid attendance details.');
+        let list = get(STORAGE_KEYS.attendance); const idx = list.findIndex(x => x.id === data.id); if (idx >= 0) list[idx] = data; else list.push(data); set(STORAGE_KEYS.attendance, list); close(); renderAttendancePage();
+      };
+    }
+
+    function deleteAttendance(id) { if (confirm('Delete this attendance entry?')) { set(STORAGE_KEYS.attendance, get(STORAGE_KEYS.attendance).filter(x=>x.id!==id)); renderAttendancePage(); } }
+
+    function renderMarksPage() {
+      const students = get(STORAGE_KEYS.students);
+      $('#content').innerHTML = `
+        <section class="page-header"><div><p class="section-label">Marks Management</p><h1>Marks</h1><p class="muted">Assign marks, view grades, and maintain academic performance data.</p></div><button id="addMarksBtn" class="btn btn-primary">+ Add Marks</button></section>
+        <section class="panel-card"><div class="table-wrapper"><table><thead><tr><th>Student</th><th>Subject</th><th>Marks</th><th>Grade</th><th>Actions</th></tr></thead><tbody id="marksRows"></tbody></table></div></section>`;
+      const renderRows = () => {
+        const rows = get(STORAGE_KEYS.marks);
+        $('#marksRows').innerHTML = rows.length ? rows.map(m => {
+          const s = students.find(x=>x.id===m.studentId);
+          return `<tr><td>${s?.fullName || '-'}<br><span class="muted">${s?.regNo || ''}</span></td><td>${m.subject}</td><td>${m.marks}</td><td><span class="badge">${gradeFromMarks(m.marks)}</span></td><td><div class="actions"><button class="btn btn-secondary" data-edit-mark="${m.id}">Edit</button><button class="btn btn-danger" data-del-mark="${m.id}">Delete</button></div></td></tr>`;
+        }).join('') : `<tr><td colspan="5"><div class="empty-state">No marks data found.</div></td></tr>`;
+        $('#marksRows').querySelectorAll('[data-edit-mark]').forEach(b => b.onclick = () => openMarksModal(b.dataset.editMark));
+        $('#marksRows').querySelectorAll('[data-del-mark]').forEach(b => b.onclick = () => deleteMarks(b.dataset.delMark));
+      };
+      $('#addMarksBtn').onclick = () => openMarksModal(); renderRows();
+    }
+
+    function openMarksModal(id='') {
+      const m = get(STORAGE_KEYS.marks).find(x=>x.id===id) || { id:'', studentId:'', subject:'', marks:'' };
+      $('#modalRoot').innerHTML = `
+        <div class="modal"><div class="modal-card">
+          <div class="panel-header"><div><p class="section-label">Marks Form</p><h3>${id ? 'Edit Marks' : 'Add Marks'}</h3></div><button id="closeMarksModal" class="btn btn-secondary">Close</button></div>
+          <form id="marksForm" class="form-grid">
+            <input type="hidden" id="marksId" value="${m.id}">
+            <div class="form-group"><label>Student</label><select id="marksStudent"><option value="">Select</option>${get(STORAGE_KEYS.students).map(s=>`<option value="${s.id}" ${m.studentId===s.id?'selected':''}>${s.fullName} (${s.regNo})</option>`).join('')}</select></div>
+            <div class="form-group"><label>Subject</label><input id="marksSubject" value="${m.subject}"></div>
+            <div class="form-group"><label>Marks</label><input id="marksValue" type="number" min="0" max="100" value="${m.marks}"></div>
+            <div class="modal-actions"><button type="button" id="cancelMarksModal" class="btn btn-secondary">Cancel</button><button class="btn btn-primary" type="submit">Save Marks</button></div>
+          </form>
+        </div></div>`;
+      const close = () => $('#modalRoot').innerHTML='';
+      $('#closeMarksModal').onclick = close; $('#cancelMarksModal').onclick = close;
+      $('#marksForm').onsubmit = e => {
+        e.preventDefault();
+        const data = { id: $('#marksId').value || uid('m'), studentId: $('#marksStudent').value, subject: $('#marksSubject').value.trim(), marks: Number($('#marksValue').value) };
+        if (!data.studentId || !data.subject || Number.isNaN(data.marks) || data.marks < 0 || data.marks > 100) return alert('Enter valid marks details.');
+        let list = get(STORAGE_KEYS.marks); const idx = list.findIndex(x => x.id === data.id); if (idx >= 0) list[idx] = data; else list.push(data); set(STORAGE_KEYS.marks, list); close(); renderMarksPage();
+      };
+    }
+
+    function deleteMarks(id) { if (confirm('Delete this marks entry?')) { set(STORAGE_KEYS.marks, get(STORAGE_KEYS.marks).filter(x=>x.id!==id)); renderMarksPage(); } }
+
+    function renderReportsPage() {
+      const students = get(STORAGE_KEYS.students);
+      $('#content').innerHTML = `
+        <section class="page-header"><div><p class="section-label">Reports & Analytics</p><h1>Student Reports</h1><p class="muted">View academic report summaries for all students.</p></div></section>
+        <section class="panel-card"><div class="table-wrapper"><table><thead><tr><th>Reg No</th><th>Name</th><th>Course</th><th>Attendance</th><th>Average Marks</th><th>Grade</th></tr></thead><tbody>
+          ${students.map(s => { const avgM = avgMarksOf(s.id), avgA = avgAttendanceOf(s.id); return `<tr><td>${s.regNo}</td><td>${s.fullName}</td><td>${courseById(s.courseId)?.name || '-'}</td><td><span class="badge ${badgeClassAttendance(avgA)}">${avgA || 0}%</span></td><td>${avgM || 0}%</td><td><span class="badge">${gradeFromMarks(avgM)}</span></td></tr>`; }).join('')}
+        </tbody></table></div></section>
+        <section class="panel-card"><div class="panel-header"><div><p class="section-label">Comparative Analysis</p><h3>Student Average Marks</h3></div></div><canvas id="reportChart" height="120"></canvas></section>`;
+      renderChart('reportChart', students.map(s=>s.fullName.split(' ')[0]), students.map(s=>avgMarksOf(s.id)), 'Average Marks');
+    }
+
+    function renderStudentDashboard() {
+      const student = get(STORAGE_KEYS.students).find(s => s.id === state.user.studentId);
+      const course = courseById(student.courseId);
+      const marks = marksOf(student.id);
+      const attendance = attendanceOf(student.id);
+      const notifications = get(STORAGE_KEYS.notifications);
+      $('#content').innerHTML = `
+        <section class="page-header"><div><p class="section-label">Student Portal</p><h1>My Dashboard</h1><p class="muted">Track profile, enrolled course, attendance, marks, grades, and notifications in one place.</p></div></section>
+        <section class="stats-grid">
+          ${statCard('Attendance', (avgAttendanceOf(student.id) || 0) + '%', 'Average attendance across recorded subjects')}
+          ${statCard('Average Marks', (avgMarksOf(student.id) || 0) + '%', 'Overall academic performance')}
+          ${statCard('Current Grade', gradeFromMarks(avgMarksOf(student.id)), 'Calculated from average marks')}
+          ${statCard('Subjects', marks.length || (course?.subjects.length || 0), 'Active subjects for this student')}
+        </section>
+        <section class="content-grid two-columns">
+          <div class="panel-card"><div class="panel-header"><div><p class="section-label">Academic Progress</p><h3>Marks Overview</h3></div></div><canvas id="studentChart" height="130"></canvas></div>
+          <div class="panel-card"><div class="panel-header"><div><p class="section-label">Notifications</p><h3>Latest Announcements</h3></div></div><div class="list-stack">${notifications.map(n=>`<div class="notification"><strong>${n.title}</strong><p class="muted" style="margin-top:6px">${n.message}</p></div>`).join('')}</div></div>
+        </section>
+        <section class="content-grid two-columns">
+          <div class="panel-card"><div class="panel-header"><div><p class="section-label">Profile Details</p><h3>My Information</h3></div></div>
+            <div class="profile-grid">
+              <div class="profile-card"><strong>Name</strong><p class="muted" style="margin-top:8px">${student.fullName}</p></div>
+              <div class="profile-card"><strong>Register No</strong><p class="muted" style="margin-top:8px">${student.regNo}</p></div>
+              <div class="profile-card"><strong>Department</strong><p class="muted" style="margin-top:8px">${student.department}</p></div>
+              <div class="profile-card"><strong>Year</strong><p class="muted" style="margin-top:8px">${student.year}</p></div>
+              <div class="profile-card"><strong>Email</strong><p class="muted" style="margin-top:8px">${student.email}</p></div>
+              <div class="profile-card"><strong>Course</strong><p class="muted" style="margin-top:8px">${course?.name || '-'}</p></div>
+            </div>
+          </div>
+          <div class="panel-card"><div class="panel-header"><div><p class="section-label">Enrolled Subjects</p><h3>Course Structure</h3></div></div><div class="course-grid">${(course?.subjects || []).map(s=>`<div class="course-card"><strong>${s}</strong><p class="muted" style="margin-top:8px">Enrolled subject</p></div>`).join('') || '<div class="empty-state">No subjects found.</div>'}</div></div>
+        </section>
+        <section class="content-grid two-columns">
+          <div class="panel-card"><div class="panel-header"><div><p class="section-label">Attendance</p><h3>Subject-wise Attendance</h3></div></div><div class="table-wrapper"><table><thead><tr><th>Subject</th><th>Attendance</th><th>Status</th></tr></thead><tbody>${attendance.length ? attendance.map(a=>`<tr><td>${a.subject}</td><td>${a.percentage}%</td><td><span class="badge ${badgeClassAttendance(a.percentage)}">${a.percentage >= 75 ? 'Good Standing' : 'Below Threshold'}</span></td></tr>`).join('') : `<tr><td colspan="3"><div class="empty-state">No attendance records found.</div></td></tr>`}</tbody></table></div></div>
+          <div class="panel-card"><div class="panel-header"><div><p class="section-label">Marks & Grades</p><h3>Subject-wise Scores</h3></div></div><div class="table-wrapper"><table><thead><tr><th>Subject</th><th>Marks</th><th>Grade</th></tr></thead><tbody>${marks.length ? marks.map(m=>`<tr><td>${m.subject}</td><td>${m.marks}</td><td><span class="badge">${gradeFromMarks(m.marks)}</span></td></tr>`).join('') : `<tr><td colspan="3"><div class="empty-state">No marks records found.</div></td></tr>`}</tbody></table></div></div>
+        </section>`;
+      renderChart('studentChart', marks.map(m=>m.subject), marks.map(m=>m.marks), 'My Marks');
+    }
+
+    function renderChart(canvasId, labels, data, label) {
+      const canvas = document.getElementById(canvasId);
+      if (!canvas || typeof Chart === 'undefined') return;
+      if (state.chart) { try { state.chart.destroy(); } catch(e){} }
+      state.chart = new Chart(canvas, { type: 'bar', data: { labels, datasets: [{ label, data, borderWidth: 1, borderRadius: 8 }] }, options: { responsive: true, plugins: { legend: { display: true } }, scales: { y: { beginAtZero: true, max: 100 } } } });
+    }
+
+    function renderAppPage() {
+      renderSidebar(); renderTopbar(); $('#sidebar').classList.remove('open');
+      if (state.user.role === 'admin') {
+        if (state.page === 'dashboard') renderAdminDashboard();
+        else if (state.page === 'students') renderStudentsPage();
+        else if (state.page === 'courses') renderCoursesPage();
+        else if (state.page === 'attendance') renderAttendancePage();
+        else if (state.page === 'marks') renderMarksPage();
+        else if (state.page === 'reports') renderReportsPage();
+      } else renderStudentDashboard();
+      applyTheme();
+    }
+
+    function renderApp() {
+      if (!state.user) return;
+      $('#loginScreen').classList.add('hidden');
+      $('#app').classList.remove('hidden');
+      renderAppPage();
+    }
+
+    function boot() {
+      initStorage(); syncStudentUsers(); restoreSession(); applyTheme();
+      $('#themeToggleLogin').addEventListener('click', toggleTheme);
+      $('#loginForm').addEventListener('submit', login);
+      if (state.user) renderApp();
+    }
+
+    boot();
+  </script>
+</body>
+</html>
